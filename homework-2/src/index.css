@@ -1,0 +1,21 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 폼 글꼴/가독성 살짝 향상 */
+@layer base {
+  html {
+    font-family:
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      Roboto,
+      Inter,
+      'Noto Sans KR',
+      'Apple SD Gothic Neo',
+      'Malgun Gothic',
+      sans-serif;
+  }
+}
