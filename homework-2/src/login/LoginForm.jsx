@@ -12,22 +12,21 @@ export default function LoginForm() {
   })
   const [errors, setErrors] = useState({})
 
-  const onChange = (name, value) => setValues((v) => ({ ...v, [name]: value }))
+  const onChange = (n, v) => setValues((s) => ({ ...s, [n]: v }))
   const validate = () => {
     const e = {}
-    if (!values.email) e.email = '이메일 입력'
-    if (!values.password) e.password = '비밀번호 입력'
+    if (!values.email) e.email = '이메일을 입력하세요.'
+    if (!values.password) e.password = '비밀번호를 입력하세요.'
     setErrors(e)
     return Object.keys(e).length === 0
   }
   const onSubmit = (ev) => {
     ev.preventDefault()
-    if (!validate()) return
-    console.log('login:', values)
+    if (validate()) console.log('login:', values)
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5">
+    <form onSubmit={onSubmit} className="form">
       <TextInput
         label="이메일"
         name="email"
@@ -39,33 +38,33 @@ export default function LoginForm() {
         autoComplete="email"
       />
       <PasswordInput
-        label="패스워드"
+        label="비밀번호"
         name="password"
-        placeholder="숫자, 영문 조합 6자리 이상 입력"
+        placeholder="숫자·영문 조합 6자 이상"
         value={values.password}
         onChange={onChange}
         error={errors.password}
         autoComplete="current-password"
       />
-      <div className="flex items-center justify-between">
+      <div className="inline">
         <Checkbox
           label="로그인 상태 유지"
           name="remember"
           checked={values.remember}
-          onChange={(n, c) => onChange(n, c)}
+          onChange={onChange}
         />
         <a
           href="#"
-          className="text-sm text-slate-500 underline hover:text-slate-700"
+          style={{
+            fontSize: 14,
+            color: 'var(--muted)',
+            textDecoration: 'underline',
+          }}
         >
           비밀번호 찾기
         </a>
       </div>
-
-      {/* 필 버튼: 카드 하단 중앙 */}
-      <SubmitButton className="absolute left-1/2 -bottom-6 -translate-x-1/2 w-[332px] max-w-[90%]">
-        로그인
-      </SubmitButton>
+      <SubmitButton>로그인</SubmitButton>
     </form>
   )
 }
