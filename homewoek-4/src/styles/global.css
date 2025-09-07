@@ -64,44 +64,99 @@ h2 {
   font-weight: 600;
   font-size: 1.25rem;
 }
+
+/* 공통 레이아웃 */
 .page {
-  display: grid;
-  gap: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 100vh; /* 세로 가운데 */
+  padding: 1rem;
 }
 
 .form {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
-  max-inline-size: 28rem;
+  inline-size: 100%;
+  max-inline-size: 24rem; /* 기본 너비 제한 */
+  background-color: var(--white);
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-.field {
-  display: grid;
-  gap: 0.375rem;
+
+/* 인풋 필드 */
+.form label {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-sm);
+  color: var(--gray);
+  gap: 0.25rem;
 }
-.field input,
-.field textarea {
-  padding: 0.625rem 0.75rem;
-  border: 1px solid #cbd5e1;
+
+.form input,
+.form textarea {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db; /* 연한 회색 (Tailwind gray-300 느낌) */
   border-radius: 0.5rem;
-  background: #fff;
+  font-size: var(--text-base);
+  color: var(--text-color);
+  background-color: var(--white);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
-.field [role='alert'] {
-  color: #b91c1c;
-  font-size: 0.875rem;
+
+.form input:hover,
+.form textarea:hover {
+  border-color: #9ca3af; /* hover 시 진한 회색 (gray-400) */
 }
-button[type='submit'] {
-  padding: 0.625rem 0.875rem;
-  border: 0;
+
+.form input:focus,
+.form textarea:focus {
+  border-color: var(--blue); /* focus 시 파란색 */
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* 파란 포커스 링 */
+}
+
+/* 버튼 */
+.form button {
+  padding: 0.75rem;
+  border: none;
   border-radius: 0.5rem;
+  background-color: var(--gray-200);
+  color: var(--white);
+  font-size: var(--text-base);
   cursor: pointer;
-  background: #2563eb;
-  color: #fff;
-  font-weight: 600;
+  transition: background-color 0.2s;
 }
-button[disabled] {
-  opacity: 0.6;
+
+.form button:hover {
+  background-color: var(--blue-600, #2563eb);
+}
+
+.form button:disabled {
+  background-color: var(--gray);
   cursor: not-allowed;
 }
-.auth-indicator {
-  font-size: 0.875rem;
+
+/* 에러 메시지 */
+.form [role='alert'] {
+  color: var(--red);
+  font-size: var(--text-sm);
+}
+
+/* 미디어 쿼리 */
+@media (min-width: 768px) {
+  .form {
+    max-inline-size: 32rem; /* 태블릿 이상에서는 조금 더 넓게 */
+    padding: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .form {
+    max-inline-size: 36rem; /* 데스크톱에서는 더 여유 있게 */
+  }
 }

@@ -1,27 +1,19 @@
-// src/routes/sign-up.tsx
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
-import { humanizeError } from '@/utils/errors'
-import { type SignUpInput, signUpSchema } from '@/utils/schemas'
+import { signUpSchema } from '@/utils/schemas'
 
 export default function SignUp() {
-  const navigate = useNavigate()
-  const [params] = useSearchParams()
-  const next = params.get('next') || '/'
-
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<SignUpInput>({
+  } = useForm({
     resolver: zodResolver(signUpSchema),
-    mode: 'onBlur',
   })
 
-  const onSubmit = async (values: SignUpInput) => {
+  const onSubmit = async (values: any) => {
     try {
       const { error } = await supabase.auth.signUp({
         email: values.email,
@@ -29,58 +21,49 @@ export default function SignUp() {
         options: { data: { full_name: values.full_name } },
       })
       if (error) throw error
-      toast.success('가입 완료! 메일 인증이 필요한 경우 안내를 확인하세요.')
-      navigate(`/sign-in?next=${encodeURIComponent(next)}`, { replace: true })
+      toast.success('회원가입 성공! 이메일 확인 필요')
     } catch (e) {
-      toast.error(humanizeError(e, '가입에 실패했습니다.'))
+      toast.error('회원가입 실패', { description: String(e) })
     }
   }
 
   return (
     <section className="page" aria-labelledby="signup-heading">
       <h2 id="signup-heading">Sign Up</h2>
-      <form className="form" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="field">
-          <label htmlFor="email">이메일</label>
+      <form onSubmit={handleSubmit(onSubmit)} className="form" noValidate>
+        <label>
+          이메일
+          <input type="email" autoComplete="email" {...register('email')} />
+          {errors.email && (
+            <span role="alert">{errors.email.message as string}</span>
+          )}
+        </label>
+        <label>
+          비밀번호
           <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            {...register('email')}
-            aria-invalid={!!errors.email}
-          />
-          {errors.email && <p role="alert">{errors.email.message}</p>}
-        </div>
-        <div className="field">
-          <label htmlFor="password">비밀번호</label>
-          <input
-            id="password"
             type="password"
             autoComplete="new-password"
             {...register('password')}
-            aria-invalid={!!errors.password}
           />
-          {errors.password && <p role="alert">{errors.password.message}</p>}
-        </div>
-        <div className="field">
-          <label htmlFor="full_name">이름(선택)</label>
+          {errors.password && (
+            <span role="alert">{errors.password.message as string}</span>
+          )}
+        </label>
+        <label>
+          이름(선택)
           <input
-            id="full_name"
             type="text"
-            autoComplete="name"
-            {...register('full_name')}
-            aria-invalid={!!errors.full_name}
+            autoComplete="username"
+            {...register('username')}
           />
-          {errors.full_name && <p role="alert">{errors.full_name.message}</p>}
-        </div>
+          {errors.full_name && (
+            <span role="alert">{errors.full_name.message as string}</span>
+          )}
+        </label>
         <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '가입 중…' : '가입'}
+          회원가입
         </button>
       </form>
-      <p>
-        이미 계정이 있나요?{' '}
-        <Link to={`/sign-in?next=${encodeURIComponent(next)}`}>Sign In</Link>
-      </p>
     </section>
   )
 }

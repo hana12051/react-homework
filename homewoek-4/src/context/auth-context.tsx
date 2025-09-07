@@ -1,88 +1,79 @@
 // src/context/auth-context.tsx
-import type { Session, User } from '@supabase/supabase-js'
 import { createContext, useContext, useEffect, useReducer } from 'react'
 import { supabase } from '@/lib/supabase'
 
-// ← 프로젝트 경로에 맞게 수정
+export type AuthStatus =
+  | 'idle'
+  | 'loading'
+  | 'authenticated'
+  | 'unauthenticated'
 
-type AuthState = {
-  status: 'loading' | 'authenticated' | 'unauthenticated'
-  user: User | null
-  session: Session | null
+export type AuthState = {
+  status: AuthStatus
+  user: import('@supabase/supabase-js').User | null
 }
 
 type Action =
   | { type: 'SET_LOADING' }
-  | { type: 'SET_AUTH'; user: User; session: Session | null }
+  | { type: 'SET_AUTH'; user: AuthState['user'] }
   | { type: 'SET_UNAUTH' }
 
-const initialState: AuthState = {
-  status: 'loading',
-  user: null,
-  session: null,
-}
+const AuthCtx = createContext<
+  (AuthState & { signOut: () => Promise<void> }) | null
+>(null)
 
 function reducer(state: AuthState, action: Action): AuthState {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, status: 'loading' }
     case 'SET_AUTH':
-      return {
-        status: 'authenticated',
-        user: action.user,
-        session: action.session,
-      }
+      return { status: 'authenticated', user: action.user }
     case 'SET_UNAUTH':
-      return { status: 'unauthenticated', user: null, session: null }
+      return { status: 'unauthenticated', user: null }
     default:
       return state
   }
 }
 
-type AuthContextValue = AuthState & {
-  signOut: () => Promise<void>
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [state, dispatch] = useReducer(reducer, { status: 'idle', user: null })
 
   useEffect(() => {
-    // 초기 세션 확인
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        dispatch({ type: 'SET_AUTH', user: session.user, session })
-      } else {
-        dispatch({ type: 'SET_UNAUTH' })
-      }
-    })
+    let alive = true
 
-    // 세션 변경 구독
+    const init = async () => {
+      dispatch({ type: 'SET_LOADING' })
+      const { data } = await supabase.auth.getSession()
+      if (!alive) return
+      const user = data.session?.user ?? null
+      dispatch(user ? { type: 'SET_AUTH', user } : { type: 'SET_UNAUTH' })
+    }
+    init()
+
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        dispatch({ type: 'SET_AUTH', user: session.user, session })
-      } else {
-        dispatch({ type: 'SET_UNAUTH' })
-      }
+      const user = session?.user ?? null
+      dispatch(user ? { type: 'SET_AUTH', user } : { type: 'SET_UNAUTH' })
     })
 
     return () => {
+      alive = false
       sub.subscription.unsubscribe()
     }
   }, [])
 
-  const signOut = async () => {
+  async function signOut() {
     await supabase.auth.signOut()
-    // onAuthStateChange로 상태가 갱신됩니다.
   }
 
-  const value: AuthContextValue = { ...state, signOut }
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthCtx.Provider value={{ ...state, signOut }}>
+      {children}
+    </AuthCtx.Provider>
+  )
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used within <AuthProvider>')
+  const ctx = useContext(AuthCtx)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
   return ctx
 }

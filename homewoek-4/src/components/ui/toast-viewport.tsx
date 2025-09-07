@@ -2,5 +2,5 @@
 import { Toaster } from 'sonner'
 
 export default function ToastViewport() {
-  return <Toaster richColors position="top-center" />
+  return <Toaster richColors position="top-right" />
 }
